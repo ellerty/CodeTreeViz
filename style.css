@@ -1,8 +1,20 @@
-
 body {
   font-family: Arial, sans-serif;
   margin: 20px;
   background-color: #f5f5f5;
+}
+
+.container {
+  display: flex;
+  gap: 20px;
+  height: calc(100vh - 40px);
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 #drop-area {
@@ -67,12 +79,14 @@ body {
 }
 
 #output-area {
-  margin-top: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 #output {
-  width: 100%;
-  min-height: 400px;
+  flex: 1;
   padding: 20px;
   font-family: 'Consolas', monospace;
   font-size: 14px;
@@ -86,6 +100,7 @@ body {
   tab-size: 4;
   -moz-tab-size: 4;
   -o-tab-size: 4;
+  margin: 0;
 }
 
 #copy-button {
@@ -109,6 +124,84 @@ body {
   cursor: not-allowed;
 }
 
+.file-tree-container {
+  width: 300px;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+}
+
+.file-tree-container h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+#file-tree {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+.tree-item {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+.tree-item-header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.tree-item-header:hover {
+  background-color: #f0f0f0;
+}
+
+.tree-toggle {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #666;
+  user-select: none;
+}
+
+.file-checkbox {
+  margin: 0;
+  cursor: pointer;
+}
+
+.folder-icon {
+  color: #FFA000;
+  font-size: 16px;
+}
+
+.file-icon {
+  color: #2196F3;
+  font-size: 16px;
+}
+
+.tree-item-content {
+  margin-left: 20px;
+  border-left: 1px dashed #ddd;
+  padding-left: 10px;
+  display: none;
+}
+
+.tree-item-content.show {
+  display: block;
+}
+
 /* 滚动条样式 */
 ::-webkit-scrollbar {
   width: 8px;
@@ -129,49 +222,14 @@ body {
   background: #666;
 }
 
-/* 文件树样式 */
-.tree-view {
-  font-family: 'Consolas', monospace;
-  line-height: 1.5;
-}
-
-.tree-item {
-  white-space: nowrap;
-}
-
-.tree-content {
-  margin-left: 20px;
-  border-left: 1px dotted #ccc;
-  padding-left: 10px;
-}
-
-/* 动画效果 */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-#processing-info {
-  animation: fadeIn 0.3s ease;
-}
-
 /* 响应式设计 */
 @media (max-width: 768px) {
-  body {
-    margin: 10px;
+  .container {
+    flex-direction: column;
   }
-
-  #drop-area {
-    padding: 20px;
-  }
-
-  #output {
-    font-size: 12px;
-  }
-
-  #select-folder,
-  #copy-button {
-    width: 100%;
-    margin-bottom: 10px;
+  
+  .file-tree-container {
+    width: auto;
+    height: 300px;
   }
 }
