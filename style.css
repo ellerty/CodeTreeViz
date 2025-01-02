@@ -1,0 +1,177 @@
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  background-color: #f5f5f5;
+}
+
+#drop-area {
+  border: 2px dashed #ccc;
+  border-radius: 20px;
+  padding: 40px;
+  text-align: center;
+  background-color: white;
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+}
+
+#drop-area p {
+  margin: 10px 0;
+  font-size: 16px;
+  color: #666;
+}
+
+#drop-area.dragover {
+  border-color: #2196F3;
+  background-color: #E3F2FD;
+  color: #1565C0;
+}
+
+#select-folder {
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+#select-folder:hover {
+  background-color: #45a049;
+}
+
+#select-folder:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+#processing-info {
+  margin: 20px 0;
+  padding: 15px;
+  background-color: white;
+  border-radius: 8px;
+  border-left: 4px solid #2196F3;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#processing-info p {
+  margin: 8px 0;
+  color: #333;
+}
+
+#processing-info span {
+  color: #2196F3;
+  font-family: 'Consolas', monospace;
+}
+
+#output-area {
+  margin-top: 20px;
+}
+
+#output {
+  width: 100%;
+  min-height: 400px;
+  padding: 20px;
+  font-family: 'Consolas', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  overflow: auto;
+  white-space: pre;
+  tab-size: 4;
+  -moz-tab-size: 4;
+  -o-tab-size: 4;
+}
+
+#copy-button {
+  margin-top: 10px;
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+#copy-button:hover {
+  background-color: #1976D2;
+}
+
+#copy-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
+
+/* 文件树样式 */
+.tree-view {
+  font-family: 'Consolas', monospace;
+  line-height: 1.5;
+}
+
+.tree-item {
+  white-space: nowrap;
+}
+
+.tree-content {
+  margin-left: 20px;
+  border-left: 1px dotted #ccc;
+  padding-left: 10px;
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+#processing-info {
+  animation: fadeIn 0.3s ease;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  body {
+    margin: 10px;
+  }
+
+  #drop-area {
+    padding: 20px;
+  }
+
+  #output {
+    font-size: 12px;
+  }
+
+  #select-folder,
+  #copy-button {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+}

@@ -1,0 +1,25 @@
+// index.html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>文件夹界面</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="drop-area">
+    <p>将文件或文件夹拖放到此处</p>
+    <p>或</p>
+    <button id="select-folder">选择文件或文件夹</button>
+  </div>
+  <div id="processing-info" style="display: none;">
+    <p>当前处理文件: <span id="current-file">-</span></p>
+    <p>文件路径: <span id="current-path">-</span></p>
+  </div>
+  <div id="output-area">
+    <pre id="output" readonly></pre>
+    <button id="copy-button">一键复制</button>
+  </div>
+  <script src="renderer.js"></script>
+</body>
+</html>
