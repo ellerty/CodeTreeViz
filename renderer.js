@@ -14,6 +14,7 @@ const applyButton = document.getElementById('apply-button');
 let globalTreeData = [];
 let fileVisibility = new Map();
 let folderVisibility = new Map();
+let filterRulesDialog = null;
 
 // 防止默认的拖放行为
 ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -316,3 +317,231 @@ applyButton.addEventListener('click', () => {
     applyButton.style.backgroundColor = '#4CAF50';
   }, 2000);
 });
+
+// 默认过滤规则
+const defaultFilterRules = [
+  // 自动生成的文件
+  /\.class$/, /\.o$/, /\.obj$/, /\.exe$/,
+  /dist\//, /build\//,
+  /\.tmp$/, /\.swp$/, /\.bak$/,
+  // 缓存文件
+  /\.DS_Store$/, /Thumbs\.db$/,
+  /\.cache\//, /\.mypy_cache\//,
+  // 日志文件
+  /\.log$/,
+  // 工具配置文件的备份版本
+  /~$/, /\.bak$/,
+  // 历史性或已弃用的文件
+  /old_/, /_v1\./,
+  // 开发工具生成的特定文件
+  /\.idea\//, /\.vscode\//
+];
+
+// 用户自定义过滤规则
+let customFilterRules = [];
+
+// 检查文件或文件夹是否匹配过滤规则
+function matchesFilterRules(name) {
+  const rules = [...defaultFilterRules, ...customFilterRules];
+  return rules.some(rule => {
+    try {
+      return rule.test(name);
+    } catch (error) {
+      console.error('规则匹配错误:', error);
+      return false;
+    }
+  });
+}
+
+// 应用过滤规则
+function applyFilterRules() {
+  function processItem(item) {
+    if (matchesFilterRules(item.name)) {
+      if (item.type === 'folder') {
+        folderVisibility.set(item.path, false);
+      } else {
+        fileVisibility.set(item.path, false);
+      }
+    }
+    
+    // 递归处理子项目
+    if (item.type === 'folder' && item.children) {
+      item.children.forEach(processItem);
+    }
+  }
+  
+  // 处理所有根项目
+  globalTreeData.forEach(processItem);
+  
+  // 更新文件树显示
+  updateFileTree();
+}
+
+// 更新文件树
+function updateFileTree() {
+  const fileTree = document.getElementById('file-tree');
+  fileTree.innerHTML = '';
+  globalTreeData.forEach(item => {
+    fileTree.appendChild(createTreeItem(item));
+  });
+}
+
+// 添加过滤规则按钮的点击事件处理
+document.getElementById('filter-button').addEventListener('click', () => {
+  if (!filterRulesDialog) {
+    filterRulesDialog = createFilterRulesDialog();
+    document.body.appendChild(filterRulesDialog);
+  }
+});
+
+// 添加以下函数来创建和显示过滤规则对话框
+function createFilterRulesDialog() {
+  const dialog = document.createElement('div');
+  dialog.className = 'filter-rules-dialog';
+  
+  const content = document.createElement('div');
+  content.className = 'filter-rules-content';
+  
+  // 添加说明文字
+  const description = document.createElement('div');
+  description.className = 'filter-rules-description';
+  description.innerHTML = `
+    <h3>过滤规则说明</h3>
+    <p>每行输入一个规则，支持正则表达式。规则匹配文件名或文件夹名时，将自动取消选中。</p>
+    
+    <h4>基础规则示例：</h4>
+    <pre>
+# 1. 精确匹配后缀名（注意转义点号）
+\.jpg$     # 匹配所有 .jpg 文件
+\.png$     # 匹配所有 .png 文件
+\.exe$     # 匹配所有 .exe 文件
+
+# 2. 匹配文件夹名称
+node_modules/   # 匹配 node_modules 文件夹
+dist/          # 匹配 dist 文件夹
+build/         # 匹配 build 文件夹
+
+# 3. 匹配文件名包含特定字符
+test           # 匹配名称中包含 test 的文件或文件夹
+backup         # 匹配名称中包含 backup 的文件或文件夹
+
+# 4. 匹配特定前缀或后缀
+^temp          # 匹配以 temp 开头的文件或文件夹
+old_           # 匹配以 old_ 开头的文件或文件夹
+_backup$       # 匹配以 _backup 结尾的文件或文件夹</pre>
+
+    <h4>高级规则示例：</h4>
+    <pre>
+# 1. 使用或运算符 |
+\.(jpg|png|gif)$   # 匹配所有 .jpg、.png 或 .gif 文件
+
+# 2. 使用通配符
+.*\.temp$          # 匹配任何以 .temp 结尾的文件
+test.*\.js$        # 匹配以 test 开头的所有 .js 文件
+
+# 3. 匹配包含数字的文件
+.*[0-9].*\.txt$    # 匹配文件名中包含数字的 .txt 文件
+v[0-9]+\./        # 匹配类似 v1.、v2. 等版本号文件</pre>
+
+    <h4>注意事项：</h4>
+    <pre>
+1. 每行一个规则
+2. 以 # 开头的行为注释，会被忽略
+3. 特殊字符需要转义，如 . 要写成 \.
+4. $ 表示匹配结尾，/ 表示匹配文件夹
+5. 规则区分大小写
+6. 被过滤的文件可以手动勾选显示</pre>
+
+    <h4>默认过滤规则：</h4>
+    <pre>
+# 自动生成的文件
+\.class$    # Java编译生成的文件
+\.o$        # C/C++编译生成的目标文件
+\.exe$      # 可执行文件
+dist/       # 前端打包目录
+build/      # 编译输出目录
+
+# 缓存文件
+\.DS_Store$ # macOS系统文件
+\.cache/    # 缓存目录
+
+# 日志文件
+\.log$      # 日志文件
+
+# 备份文件
+~$          # 临时备份
+\.bak$      # 备份文件
+
+# 开发工具文件
+\.idea/     # JetBrains IDE
+\.vscode/   # VS Code</pre>
+  `;
+  
+  // 创建文本区域
+  const textarea = document.createElement('textarea');
+  textarea.className = 'filter-rules-textarea';
+  textarea.value = customFilterRules.map(rule => rule.source).join('\n');
+  
+  // 创建按钮容器
+  const buttonContainer = document.createElement('div');
+  buttonContainer.className = 'filter-rules-buttons';
+  
+  // 创建应用按钮
+  const applyButton = document.createElement('button');
+  applyButton.textContent = '应用';
+  applyButton.onclick = () => {
+    try {
+      // 解析文本区域中的规则
+      const rules = textarea.value.split('\n')
+        .map(line => line.trim())
+        .filter(line => line && !line.startsWith('#'))
+        .map(rule => new RegExp(rule));
+      
+      customFilterRules = rules;
+      
+      // 应用过滤规则到所有项目
+      applyFilterRules();
+      
+      dialog.remove();
+      filterRulesDialog = null;
+      
+      // 更新输出显示
+      updateOutput();
+      
+      // 显示成功提示
+      showNotification('过滤规则已更新并应用');
+    } catch (error) {
+      alert('规则格式错误: ' + error.message);
+    }
+  };
+  
+  // 创建取消按钮
+  const cancelButton = document.createElement('button');
+  cancelButton.textContent = '取消';
+  cancelButton.onclick = () => {
+    dialog.remove();
+    filterRulesDialog = null;
+  };
+  
+  // 组装对话框
+  buttonContainer.appendChild(applyButton);
+  buttonContainer.appendChild(cancelButton);
+  content.appendChild(description);
+  content.appendChild(textarea);
+  content.appendChild(buttonContainer);
+  dialog.appendChild(content);
+  
+  return dialog;
+}
+
+// 添加显示通知的函数
+function showNotification(message) {
+  const notification = document.createElement('div');
+  notification.className = 'notification';
+  notification.textContent = message;
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    notification.remove();
+  }, 2000);
+}
