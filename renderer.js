@@ -8,6 +8,7 @@ const copyButton = document.getElementById('copy-button');
 const processingInfo = document.getElementById('processing-info');
 const currentFile = document.getElementById('current-file');
 const currentPath = document.getElementById('current-path');
+const applyButton = document.getElementById('apply-button');
 
 // 全局变量
 let globalTreeData = [];
@@ -66,7 +67,6 @@ function createTreeItem(item) {
     checkbox.checked = fileVisibility.get(item.path) !== false;
     checkbox.addEventListener('change', () => {
       fileVisibility.set(item.path, checkbox.checked);
-      updateOutput();
     });
     header.appendChild(checkbox);
     
@@ -116,9 +116,11 @@ function updateOutput() {
       outputText += `${indent}├───${item.name}/\n`;
       const newIndent = indent + '│   ';
       item.children.forEach(child => processItem(child, newIndent));
-    } else if (fileVisibility.get(item.path) !== false) {
+    } else {
+      // 总是显示文件名
       outputText += `${indent}├───${item.name}\n`;
-      if (item.content) {
+      // 只有当文件被选中时才显示内容
+      if (fileVisibility.get(item.path) !== false && item.content) {
         const contentIndent = indent + '│       ';
         item.content.split('\n').forEach(line => {
           outputText += `${contentIndent}${line}\n`;
@@ -187,8 +189,12 @@ async function processItems(paths) {
       fileTree.appendChild(createTreeItem(item));
     });
     
-    // 更新输出
-    output.textContent = result.output;
+    // 清空输出区域，等待用户点击应用按钮
+    output.textContent = '请在左侧选择要显示的文件，然后点击"应用选择"按钮查看内容';
+    
+    // 启用应用按钮
+    applyButton.disabled = false;
+    
   } catch (error) {
     output.textContent = `处理错误: ${error.message}`;
   } finally {
@@ -247,4 +253,20 @@ document.addEventListener('keydown', (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'c' && document.activeElement === output) {
     copyButton.click();
   }
+});
+
+// 添加应用按钮的点击事件处理
+applyButton.addEventListener('click', () => {
+  updateOutput();
+  
+  // 显示成功提示
+  const originalText = applyButton.textContent;
+  applyButton.textContent = '已应用！';
+  applyButton.style.backgroundColor = '#4CAF50';
+  
+  // 2秒后恢复按钮原状
+  setTimeout(() => {
+    applyButton.textContent = originalText;
+    applyButton.style.backgroundColor = '#4CAF50';
+  }, 2000);
 });
