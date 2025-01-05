@@ -1,4 +1,4 @@
-# Folder Interface / 文件夹界面
+# CodeTreeViz / 代码项目树形可视化
 
 [English](#english) | [中文](#chinese)
 
