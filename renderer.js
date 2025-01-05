@@ -13,6 +13,7 @@ const applyButton = document.getElementById('apply-button');
 // 全局变量
 let globalTreeData = [];
 let fileVisibility = new Map();
+let folderVisibility = new Map();
 
 // 防止默认的拖放行为
 ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -50,30 +51,71 @@ function createTreeItem(item) {
   const header = document.createElement('div');
   header.className = 'tree-item-header';
   
+  // 为所有项目（文件夹和文件）添加复选框
+  const checkbox = document.createElement('input');
+  checkbox.type = 'checkbox';
+  checkbox.className = 'file-checkbox';
+  
   if (item.type === 'folder') {
     const toggle = document.createElement('span');
     toggle.className = 'tree-toggle';
     toggle.textContent = '▼';
+    header.appendChild(checkbox);
     header.appendChild(toggle);
     
     const folderIcon = document.createElement('span');
     folderIcon.className = 'folder-icon';
     folderIcon.textContent = '📁';
     header.appendChild(folderIcon);
-  } else {
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.className = 'file-checkbox';
-    checkbox.checked = fileVisibility.get(item.path) !== false;
+    
+    // 设置文件夹复选框状态
+    checkbox.checked = folderVisibility.get(item.path) !== false;
+    
+    // 文件夹复选框变化事件
     checkbox.addEventListener('change', () => {
-      fileVisibility.set(item.path, checkbox.checked);
+      const isChecked = checkbox.checked;
+      folderVisibility.set(item.path, isChecked);
+      
+      // 递归更新所有子项的状态
+      function updateChildrenState(children) {
+        children.forEach(child => {
+          if (child.type === 'folder') {
+            folderVisibility.set(child.path, isChecked);
+            if (child.children) {
+              updateChildrenState(child.children);
+            }
+          } else {
+            fileVisibility.set(child.path, isChecked);
+          }
+        });
+      }
+      
+      if (item.children) {
+        updateChildrenState(item.children);
+      }
+      
+      // 更新 DOM 中子项的复选框状态
+      const childCheckboxes = itemDiv.querySelectorAll('.file-checkbox');
+      childCheckboxes.forEach(cb => {
+        cb.checked = isChecked;
+      });
     });
+    
+  } else {
     header.appendChild(checkbox);
     
     const fileIcon = document.createElement('span');
     fileIcon.className = 'file-icon';
     fileIcon.textContent = '📄';
     header.appendChild(fileIcon);
+    
+    // 设置文件复选框状态
+    checkbox.checked = fileVisibility.get(item.path) !== false;
+    
+    // 文件复选框变化事件
+    checkbox.addEventListener('change', () => {
+      fileVisibility.set(item.path, checkbox.checked);
+    });
   }
   
   const name = document.createElement('span');
@@ -91,7 +133,7 @@ function createTreeItem(item) {
     itemDiv.appendChild(content);
     
     header.addEventListener('click', (e) => {
-      if (e.target.classList.contains('file-checkbox')) return;
+      if (e.target.type === 'checkbox') return;
       const toggle = header.querySelector('.tree-toggle');
       const content = itemDiv.querySelector('.tree-item-content');
       if (content.classList.contains('show')) {
@@ -113,13 +155,14 @@ function updateOutput() {
   
   function processItem(item, indent = '') {
     if (item.type === 'folder') {
+      // 总是显示文件夹结构
       outputText += `${indent}├───${item.name}/\n`;
       const newIndent = indent + '│   ';
       item.children.forEach(child => processItem(child, newIndent));
     } else {
       // 总是显示文件名
       outputText += `${indent}├───${item.name}\n`;
-      // 只有当文件被选中时才显示内容
+      // 只有当文件被选中且其所有父文件夹都被选中时才显示内容
       if (fileVisibility.get(item.path) !== false && item.content) {
         const contentIndent = indent + '│       ';
         item.content.split('\n').forEach(line => {
@@ -138,8 +181,11 @@ function initializeFileVisibility(items) {
   items.forEach(item => {
     if (item.type === 'file') {
       fileVisibility.set(item.path, true);
-    } else if (item.type === 'folder' && item.children) {
-      initializeFileVisibility(item.children);
+    } else if (item.type === 'folder') {
+      folderVisibility.set(item.path, true);
+      if (item.children) {
+        initializeFileVisibility(item.children);
+      }
     }
   });
 }
